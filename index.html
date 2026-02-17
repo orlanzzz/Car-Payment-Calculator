@@ -91,10 +91,6 @@
       transform: translateY(-2px);
       backdrop-filter: blur(12px);
     }
-    .filter-card.active {
-      border-color: #f97316 !important;
-      backdrop-filter: blur(12px);
-    }
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -214,6 +210,8 @@
     .filter-wrapper {
       flex: 1;
       overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
     }
   </style>
 </head>
@@ -480,7 +478,7 @@
             </button>
             <div class="filter-wrapper">
               <div id="filter-container" class="flex gap-3" style="transition: transform 0.3s ease; width: max-content;">
-                <button id="filter-all-btn" class="filter-card active flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl transition-all cursor-pointer" data-filter="" style="background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.5);">
+                <button id="filter-all-btn" class="filter-card flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl transition-all cursor-pointer" data-filter="" style="background: rgba(249, 115, 22, 0.15); border-color: rgba(249, 115, 22, 0.5);">
                   <div class="w-14 h-14 rounded-lg flex items-center justify-center" style="background: rgba(100, 116, 139, 0.3);">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -695,6 +693,8 @@
     let scrollOffset = 0;
     let uniqueModels = [];
     let totalFilterItems = 1;
+    let touchStartX = 0;
+    let touchEndX = 0;
 
     const themes = {
       dark: {
@@ -975,6 +975,14 @@
       return modelName && modelImages[modelName] ? modelImages[modelName] : null;
     }
 
+    function clearAllFilterStyles() {
+      const themeConfig = themes[currentTheme];
+      document.querySelectorAll('.filter-card').forEach(btn => {
+        btn.style.background = themeConfig.cardBg;
+        btn.style.borderColor = themeConfig.cardBorder;
+      });
+    }
+
     function buildFilterButtons() {
       const filterContainer = document.getElementById('filter-container');
       const allButton = document.getElementById('filter-all-btn');
@@ -984,19 +992,9 @@
         selectedCar = null;
         document.getElementById('payment-section').classList.add('hidden');
         
-        document.querySelectorAll('.filter-card').forEach(c => c.classList.remove('active'));
-        allButton.classList.add('active');
-        
-        const themeConfig = themes[currentTheme];
-        document.querySelectorAll('.filter-card').forEach(btn => {
-          if (btn === allButton) {
-            btn.style.background = 'rgba(249, 115, 22, 0.15)';
-            btn.style.borderColor = 'rgba(249, 115, 22, 0.5)';
-          } else {
-            btn.style.borderColor = themeConfig.cardBorder;
-            btn.style.background = themeConfig.cardBg;
-          }
-        });
+        clearAllFilterStyles();
+        allButton.style.background = 'rgba(249, 115, 22, 0.15)';
+        allButton.style.borderColor = 'rgba(249, 115, 22, 0.5)';
         
         renderCars(window.elementSdk?.config || defaultConfig);
       });
@@ -1024,19 +1022,9 @@
           selectedCar = null;
           document.getElementById('payment-section').classList.add('hidden');
           
-          document.querySelectorAll('.filter-card').forEach(c => c.classList.remove('active'));
-          button.classList.add('active');
-          
-          const themeConfig = themes[currentTheme];
-          document.querySelectorAll('.filter-card').forEach(btn => {
-            if (btn === button) {
-              btn.style.background = 'rgba(249, 115, 22, 0.15)';
-              btn.style.borderColor = 'rgba(249, 115, 22, 0.5)';
-            } else if (btn === allButton) {
-              btn.style.background = themeConfig.cardBg;
-              btn.style.borderColor = themeConfig.cardBorder;
-            }
-          });
+          clearAllFilterStyles();
+          button.style.background = 'rgba(249, 115, 22, 0.15)';
+          button.style.borderColor = 'rgba(249, 115, 22, 0.5)';
           
           renderCars(window.elementSdk?.config || defaultConfig);
         });
@@ -1280,6 +1268,7 @@
     const filterContainer = document.getElementById('filter-container');
     const filterPrev = document.getElementById('filter-prev');
     const filterNext = document.getElementById('filter-next');
+    const filterWrapper = document.querySelector('.filter-wrapper');
     const itemWidth = 128;
     const itemGap = 12;
     const containerWidth = 320;
@@ -1307,6 +1296,35 @@
       filterContainer.style.transform = `translateX(-${scrollOffset}px)`;
       updateFilterNavigation();
     });
+
+    // Swipe/drag scrolling
+    filterWrapper.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, false);
+
+    filterWrapper.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].clientX;
+      handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+      const swipeThreshold = 50;
+      const diff = touchStartX - touchEndX;
+      const totalWidth = (totalFilterItems * itemWidth) + ((totalFilterItems - 1) * itemGap);
+      const maxScroll = Math.max(0, totalWidth - containerWidth);
+
+      if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+          // Swiped left, scroll right
+          scrollOffset = Math.min(maxScroll, scrollOffset + (itemWidth + itemGap));
+        } else {
+          // Swiped right, scroll left
+          scrollOffset = Math.max(0, scrollOffset - (itemWidth + itemGap));
+        }
+        filterContainer.style.transform = `translateX(-${scrollOffset}px)`;
+        updateFilterNavigation();
+      }
+    }
 
     document.getElementById('theme-toggle').addEventListener('click', () => {
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -1419,5 +1437,5 @@
     loadSheetData(defaultConfig.data_url);
     updateRequirementsDisplay();
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cf4508a71f0bc3d',t:'MTc3MTMyMTEzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cf45fadf150bc3d',t:'MTc3MTMyMTc1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
