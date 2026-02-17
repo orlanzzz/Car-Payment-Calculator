@@ -188,6 +188,9 @@
       border-radius: 1rem;
       margin-bottom: 1.5rem;
     }
+    .icon-transition {
+      transition: opacity 0.3s ease;
+    }
   </style>
 </head>
 <body class="h-full">
@@ -224,8 +227,12 @@
                 </svg>
               </button>
               <button id="theme-toggle" class="p-2.5 rounded-lg hover:bg-slate-700 transition-colors" title="Toggle light/dark mode">
-                <svg id="theme-icon" class="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M21.64,13a1,1,0,0,0-1.05-.14,8,8,0,1,1,10.85,9.68,1,1,0,0,0-1.06.25A1,1,0,0,0,20,23h0a10,10,0,1,0,3.76-13.11Z"/>
+                <svg id="theme-icon-sun" class="w-6 h-6 text-amber-400 hidden icon-transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="5"/>
+                  <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6m-16.78 7.78l4.24-4.24m5.08-5.08l4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg id="theme-icon-moon" class="w-6 h-6 text-slate-300 icon-transition" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M21.64 13a1 1 0 0 0-1.05-.14 8 8 0 1 1 10.85 9.68 1 1 0 0 0-1.06.25A1 1 0 0 0 20 23h0a10 10 0 1 0 3.76-13.11z"/>
                 </svg>
               </button>
             </div>
@@ -573,7 +580,7 @@
       </div>
 
       <!-- Map -->
-      <div id="location-map"></div>
+      <iframe id="location-map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3372.462325684979!2d120.95029391531384!3d14.706966089999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b38db3831ffb%3A0x6c883afcb49f5390!2sDalandanan%2C%20Valenzuela%2C%20Metro%20Manila!5e1!3m2!1sen!2sph!4v1" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
 
       <!-- Location Details -->
       <div class="rounded-lg p-4 border theme-transition mb-4" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
@@ -609,55 +616,6 @@
   </div>
 
   <script>
-    let map = null;
-    const LOCATION = { lat: 14.706966, lng: 120.960292 };
-
-    const darkMapStyle = [
-      { elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
-      { elementType: 'labels.text.stroke', stylers: [{ color: '#1e293b' }] },
-      { elementType: 'labels.text.fill', stylers: [{ color: '#cbd5e1' }] },
-      { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#cbd5e1' }] },
-      { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
-      { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#0f766e' }] },
-      { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#334155' }] },
-      { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#475569' }] },
-      { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#cbd5e1' }] },
-      { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f172a' }] },
-      { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] }
-    ];
-
-    const lightMapStyle = [
-      { elementType: 'geometry', stylers: [{ color: '#f1f5f9' }] },
-      { elementType: 'labels.text.stroke', stylers: [{ color: '#f1f5f9' }] },
-      { elementType: 'labels.text.fill', stylers: [{ color: '#334155' }] },
-      { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#475569' }] },
-      { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
-      { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#d1fae5' }] },
-      { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#e2e8f0' }] },
-      { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#cbd5e1' }] },
-      { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#475569' }] },
-      { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#f0f9ff' }] },
-      { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] }
-    ];
-
-    function initMap() {
-      const mapDiv = document.getElementById('location-map');
-      if (!mapDiv || map) return;
-
-      map = new google.maps.Map(mapDiv, {
-        zoom: 17,
-        center: LOCATION,
-        styles: currentTheme === 'dark' ? darkMapStyle : lightMapStyle
-      });
-
-      new google.maps.Marker({
-        position: LOCATION,
-        map: map,
-        title: 'Mitsubishi Autohub Valenzuela',
-        icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
-      });
-    }
-
     const defaultConfig = {
       main_title: 'Mitsubishi Payment Calculator',
       subtitle: 'Calculate your monthly payments for the 2025/2026 lineup',
@@ -822,14 +780,6 @@
     locationBtn.addEventListener('click', () => {
       locationModal.style.display = 'flex';
       updateLocationModalTheme(currentTheme);
-      setTimeout(() => {
-        if (!map && typeof google !== 'undefined') {
-          initMap();
-        } else if (map) {
-          google.maps.event.trigger(map, 'resize');
-          map.setCenter(LOCATION);
-        }
-      }, 100);
     });
 
     closeLocationModal.addEventListener('click', () => {
@@ -915,11 +865,16 @@
         el.style.color = themeConfig.textColor;
       });
 
-      const themeToggle = document.getElementById('theme-toggle');
-      themeToggle.style.color = themeConfig.icon;
-
-      if (map && typeof google !== 'undefined') {
-        map.setOptions({ styles: theme === 'dark' ? darkMapStyle : lightMapStyle });
+      const sunIcon = document.getElementById('theme-icon-sun');
+      const moonIcon = document.getElementById('theme-icon-moon');
+      if (theme === 'dark') {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        moonIcon.style.color = '#94a3b8';
+      } else {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+        sunIcon.style.color = '#fbbf24';
       }
 
       renderCars(window.elementSdk?.config || defaultConfig);
@@ -1380,16 +1335,6 @@
     loadSheetData(defaultConfig.data_url);
     updateFilterNavigation();
     updateRequirementsDisplay();
-
-    // Wait for Google Maps to load
-    if (typeof google === 'undefined') {
-      window.addEventListener('load', () => {
-        if (typeof google !== 'undefined') {
-          // Google Maps loaded
-        }
-      });
-    }
   </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKJHjQU7NTJqjP9xz3dKbQKz6XVYW3s8o"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cf4157f44f5bc46',t:'MTc3MTMxODcxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cf425c3a3d9b9f9',t:'MTc3MTMxOTM4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
